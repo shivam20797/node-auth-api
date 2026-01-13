@@ -13,7 +13,7 @@ app.get("/hello", (req, res) => {
   res.json({ message: "Hello Aakash 👋 Welcome to Backend!" });
 });
 
-const bcrypt = require("bcryptjs");
+
 
 app.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
