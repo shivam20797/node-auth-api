@@ -2,9 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
 app.use(express.json());
+require("dotenv").config();
 
 
-mongoose.connect("mongodb+srv://satyamagrawal_db_user:Y6EaK8SQRkPAjyVd@apicluster.g0tzf3e.mongodb.net/?appName=apiCluster")
+mongoose.connect(process.env.MONGO_URL)
 .then(() => console.log("MongoDB connected ✅"))
 .catch(err => console.log(err));
 
@@ -39,7 +40,7 @@ const auth = (req, res, next) => {
     : authHeader;
 
   try {
-    const decoded = jwt.verify(token, "SECRET123");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.id;
     next();
   } catch (err) {
@@ -79,7 +80,7 @@ app.post("/login", async (req, res) => {
     return res.status(400).json({ error: "Wrong password" });
   }
 
-  const token = jwt.sign({ id: user._id }, "SECRET123", { expiresIn: "1d" });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
   res.json({ message: "Login successful ✅", token });
 });
@@ -137,8 +138,8 @@ app.post("/change-password-no-token",auth, async (req, res) => {
 });
 
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+app.listen(process.env.PORT, () => {
+  console.log("Server running on port " + process.env.PORT);
 });
 
 
