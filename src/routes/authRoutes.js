@@ -1,13 +1,9 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const app = express();
-app.use(express.json());
-require("dotenv").config();
-
-
-mongoose.connect(process.env.MONGO_URL)
-.then(() => console.log("MongoDB connected ✅"))
-.catch(err => console.log(err));
+const router = express.Router();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const auth = require("../middleware/auth");   // <-- connect middleware
 
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
@@ -17,37 +13,7 @@ app.get("/hello", (req, res) => {
   res.json({ message: "Hello Aakash 👋 Welcome to Backend!" });
 });
 
-const UserSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String
-});
-
-const User = mongoose.model("User", UserSchema);
-
-
 const bcrypt = require("bcryptjs");
-
-const auth = (req, res, next) => {
-  const authHeader = req.header("Authorization");
-
-  if (!authHeader) {
-    return res.status(401).json({ error: "No token provided" });
-  }
-
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : authHeader;
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.id;
-    next();
-  } catch (err) {
-    res.status(401).json({ error: "Invalid token" });
-  }
-};
-
 
 app.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
@@ -63,9 +29,6 @@ app.post("/register", async (req, res) => {
   await user.save();
   res.json({ message: "User registered successfully" });
 });
-
-
-const jwt = require("jsonwebtoken");
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -136,10 +99,3 @@ app.post("/change-password-no-token",auth, async (req, res) => {
 
   res.json({ message: "Password changed successfully 🔐" });
 });
-
-
-app.listen(process.env.PORT, () => {
-  console.log("Server running on port " + process.env.PORT);
-});
-
-
